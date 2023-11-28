@@ -1,0 +1,24 @@
+{
+    "board_mappings": [
+        {
+            "boardId": "FIQK2gG6",
+            "list_mapping": [
+                {
+                    "origin": "Weekly Templates",
+                    "target": "Weekly",
+                    "interval": 7
+                },
+                {
+                    "origin": "Monthly Templates",
+                    "target": "Monthly",
+                    "interval": 30
+                }
+            ]
+
+        }
+    ],
+    "base_params": {
+        "key": "c3483fe36c9681b5d1f9263a1c2dd568",
+	"token": "yourTokenHere"
+    }
+}
