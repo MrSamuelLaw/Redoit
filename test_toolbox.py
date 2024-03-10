@@ -6,7 +6,7 @@ from models import TrelloBoard, TrelloList, TrelloCard, Credentials
 
 class TestToolbox(unittest.IsolatedAsyncioTestCase):
 
-    def testa_generate_mappings(self):
+    def test_generate_mappings(self):
         # setup the board
         board = TrelloBoard(id='123', name='Chores')
         target = TrelloList(id='456', name='target')

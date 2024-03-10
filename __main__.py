@@ -1,11 +1,10 @@
-#!../.venv/bin/python3
 import json
 import pathlib
 import asyncio as aio
 import toolbox as tb
 from datetime import datetime, timedelta
 from models import Credentials
-    
+
 
 async def async_main():
     """For each TrelloList mapping it checks which TrelloCards
@@ -35,7 +34,7 @@ async def async_main():
             diff_names = source_names.difference(target_names)
             diff_cards = [c for c in source_cards if c.name in diff_names]
             for card in diff_cards:
-                due_date = datetime.now() + timedelta(days=m.interval)
+                due_date = datetime.now() + timedelta(days=m.interval - 1)
                 card.due = card.format_date(due_date)
                 await tb.clone_card(credentials, m, card)
 
