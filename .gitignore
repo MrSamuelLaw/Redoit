@@ -1,5 +1,5 @@
-# user specified files
-app_configs.jsonc
+# user defined files to ignore
+my_app_configs.jsonc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

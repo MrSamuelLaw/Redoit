@@ -1,5 +1,5 @@
 import unittest
-import toolbox as tb
+import redoit as tb
 from models import TrelloBoard, TrelloList, TrelloCard, Credentials
 
 

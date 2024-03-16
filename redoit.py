@@ -2,11 +2,15 @@
 import re
 import json
 import aiohttp
+import pathlib
+import asyncio as aio
 from typing import List
-from models import (Credentials, 
-                    TrelloBoard, 
-                    TrelloList, 
-                    TrelloCard, 
+from datetime import (datetime,
+                      timedelta)
+from models import (Credentials,
+                    TrelloBoard,
+                    TrelloList,
+                    TrelloCard,
                     ListMapping)
 
 
@@ -17,7 +21,7 @@ async def get_boards(credentials: Credentials) -> List[TrelloBoard]:
     async with aiohttp.ClientSession() as session:
         template = 'https://api.trello.com/1/members/{}/boards'
         params = {
-            'key': credentials.key, 
+            'key': credentials.key,
             'token': credentials.token,
         }
         headers = {'Accept': 'application/json'}
@@ -36,7 +40,7 @@ async def get_boards(credentials: Credentials) -> List[TrelloBoard]:
 async def get_lists(credentials: Credentials, board: TrelloBoard) -> List[TrelloList]:
     """Returns the TrelloLists on the board provided.
     """
-    async with aiohttp.ClientSession() as session:  
+    async with aiohttp.ClientSession() as session:
         url = f'https://api.trello.com/1/boards/{board.id}/lists'
         params = {
             'key': credentials.key,
@@ -54,7 +58,7 @@ async def get_cards(credentials: Credentials, source: TrelloList) -> List[Trello
     """
 
     # run the coros
-    async with aiohttp.ClientSession() as session: 
+    async with aiohttp.ClientSession() as session:
         url = f'https://api.trello.com/1/lists/{source.id}/cards'
         params = {
             'key': credentials.key,
@@ -71,7 +75,7 @@ async def clone_card(credentials: Credentials, mapping: ListMapping, card: Trell
     """Clones the TrelloCard from one TrelloList to another TrelloList
     """
     async with aiohttp.ClientSession() as session:
-        url = 'https://api.trello.com/1/cards' 
+        url = 'https://api.trello.com/1/cards'
         params = {
             'key': credentials.key,
             'token': credentials.token,
@@ -101,7 +105,43 @@ def parse_mappings(lists: List[TrelloList]) -> List[ListMapping]:
                 pass
     return mappings
 
-            
-    
+
+async def async_main():
+    """For each TrelloList mapping it checks which TrelloCards
+    are no longer in the target TrelloList and recreates them
+    using the template TrelloList
+    """
+    # read in the app configs
+    path = pathlib.Path(__file__)
+    path = path.parent
+    path = path.joinpath('my_app_configs.jsonc')
+    app_configs = json.loads(path.read_text())
+    credentials = Credentials(**app_configs.get('credentials'))
+
+    # grab the boards
+    boards = await get_boards(credentials)
+
+    # loop over the lists on each board and clone from the source to the target
+    for board in boards:
+        # this part can probably be consolidated into a function and run async
+        lists = await get_lists(credentials, board)
+        mappings = parse_mappings(lists)
+        for m in mappings:
+            source_cards = await get_cards(credentials, m.source)
+            target_cards = await get_cards(credentials, m.target)
+            source_names = {c.name for c in source_cards}
+            target_names = {c.name for c in target_cards}
+            diff_names = source_names.difference(target_names)
+            diff_cards = [c for c in source_cards if c.name in diff_names]
+            for card in diff_cards:
+                due_date = datetime.now() + timedelta(days=m.interval - 1)
+                card.due = card.format_date(due_date)
+                await clone_card(credentials, m, card)
+
+
+if __name__ == '__main__':
+    aio.run(async_main())
+
+
 
 
