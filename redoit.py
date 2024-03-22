@@ -1,4 +1,3 @@
-#!../.venv/bin/python3
 import re
 import json
 import aiohttp
@@ -7,68 +6,13 @@ import asyncio as aio
 from typing import List
 from datetime import (datetime,
                       timedelta)
+from common import (get_boards,
+                    get_lists, 
+                    get_cards)
 from models import (Credentials,
-                    TrelloBoard,
                     TrelloList,
                     TrelloCard,
                     ListMapping)
-
-
-
-async def get_boards(credentials: Credentials) -> List[TrelloBoard]:
-    """Gets all the boards the user belongs to.
-    """
-    async with aiohttp.ClientSession() as session:
-        template = 'https://api.trello.com/1/members/{}/boards'
-        params = {
-            'key': credentials.key,
-            'token': credentials.token,
-        }
-        headers = {'Accept': 'application/json'}
-        boards: TrelloBoard = []
-        for uname in credentials.usernames:
-            url = template.format(uname)
-            async with session.get(url, headers=headers, params=params) as response:
-                array = await response.json()
-                for obj in array:
-                    board = TrelloBoard(**obj)
-                    if not any([b.id == board.id for b in boards]):
-                        boards.append(board)
-    return boards
-
-
-async def get_lists(credentials: Credentials, board: TrelloBoard) -> List[TrelloList]:
-    """Returns the TrelloLists on the board provided.
-    """
-    async with aiohttp.ClientSession() as session:
-        url = f'https://api.trello.com/1/boards/{board.id}/lists'
-        params = {
-            'key': credentials.key,
-            'token': credentials.token}
-        headers = {'Accept': 'application/json'}
-        async with session.get(url, headers=headers, params=params) as response:
-            array = await response.json()
-            for idx, obj in enumerate(array):
-                array[idx] = TrelloList(**obj)
-    return array
-
-
-async def get_cards(credentials: Credentials, source: TrelloList) -> List[TrelloCard]:
-    """Reads the cards that belong to a list an returns them
-    """
-
-    # run the coros
-    async with aiohttp.ClientSession() as session:
-        url = f'https://api.trello.com/1/lists/{source.id}/cards'
-        params = {
-            'key': credentials.key,
-            'token': credentials.token,}
-        headers = {'Accept': 'application/json'}
-        async with session.get(url, headers=headers, params=params) as response:
-            array = await response.json()
-            for idx, obj in enumerate(array):
-                array[idx] = TrelloCard(**obj)
-    return array
 
 
 async def clone_card(credentials: Credentials, mapping: ListMapping, card: TrelloCard) -> TrelloCard:

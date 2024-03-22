@@ -18,9 +18,10 @@ class TrelloCard(BaseModel):
 
     model_config = ConfigDict(extra='allow')
 
-    due: str | None = None
     id: str
     name: str
+    due: str | None = None
+    dueComplete: bool | None = None
 
     @classmethod
     def format_date(cls, dt: datetime) -> str:
