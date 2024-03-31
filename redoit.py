@@ -7,7 +7,7 @@ from typing import List
 from datetime import (datetime,
                       timedelta)
 from common import (get_boards,
-                    get_lists, 
+                    get_lists,
                     get_cards)
 from models import (Credentials,
                     TrelloList,
@@ -74,6 +74,7 @@ async def async_main():
             mappings = parse_mappings(lists)
             for m in mappings:
                 source_cards = await get_cards(credentials, m.source)
+                source_cards = [c for c in source_cards if c.closed is False]  # filter out archived source cards
                 target_cards = await get_cards(credentials, m.target)
                 source_names = {c.name for c in source_cards}
                 target_names = {c.name for c in target_cards}

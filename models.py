@@ -21,6 +21,7 @@ class TrelloCard(BaseModel):
     id: str
     name: str
     due: str | None = None
+    closed: bool | None = None
     dueComplete: bool | None = None
 
     @classmethod
